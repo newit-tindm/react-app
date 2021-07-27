@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
-import axios from 'axios';
+import { APIModuleData } from './APIModule';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -117,17 +117,20 @@ export default function Page() {
     'https://jsonplaceholder.typicode.com/todos/4',
     'https://jsonplaceholder.typicode.com/todos/5'
   ];
-
+  
   function getItemShouldBeDeleted() {
     let items = [];
-    let requests = urls.map(url => axios.get(url));
+    
+    let requests = urls.map(url => APIModuleData.getItemShouldBeDeleted(url));
     Promise.all(requests).then(promises => {
       promises.forEach((res, index) => {
         setProgress((index+1)*100/urls.length);
         setConcurrency(index+1);
-        return items.push(res.data.id);
+        console.log(res.id);
+        return items.push(res.id);
       });
     })
+    console.log(items);
     setItemShouldBeDeleted(items);
   }
 
