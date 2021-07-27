@@ -124,7 +124,6 @@ export default function Page() {
     let requests = urls.map(url => APIModuleData.getItemShouldBeDeleted(url));
     Promise.all(requests).then(promises => {
       promises.forEach((res, index) => {
-        setProgress((index+1)*100/urls.length);
         setConcurrency(index+1);
         console.log(res.id);
         return items.push(res.id);
@@ -134,15 +133,10 @@ export default function Page() {
     setItemShouldBeDeleted(items);
   }
 
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setProgress(1*100/urls.length);
-  //   }, 800);
-  //   return () => {
-      
-  //     clearInterval(timer);
-  //   };
-  // }, []);
+  useEffect(() => {
+      console.log('concurrency: ', concurrency);
+      setProgress(concurrency*100/urls.length);
+  }, [concurrency]);
 
   return (
     <div className={classes.root}>
