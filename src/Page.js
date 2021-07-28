@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
@@ -75,17 +75,9 @@ export default function Page() {
   const classes = useStyles();
   const [progress, setProgress] = useState(0);
 
-  let blocked_ids = [
-    35001159,
-    35025484,
-    35078336,
-    35113814,
-    35114132
-  ];
+  let uploadIds = createRef();
 
-  let uploadIds = React.createRef();
-
-  const [arrBlockedIds, setArrBlockedIds] = useState([]);
+  const url = 'http://127.0.0.1:5500/src/data.json';
 
   const [itemNotBlocked, setItemNotBlocked] = useState([]);
 
@@ -93,8 +85,13 @@ export default function Page() {
 
   const [concurrency, setConcurrency] = useState(0);
 
+  const [blockedIds, setBlockedIds] = useState([]);
+
   function getBlockedIds() {
-    setArrBlockedIds(blocked_ids);
+    // get blocked ids
+    APIModuleData.getAPI(url).then(res => {
+      setBlockedIds(res.blocked_ids);
+    });
     console.log('upload ids: ', uploadIds.current.value);
     console.log(convertToArrItems('items not blocked: ', uploadIds.current.value));
     setItemNotBlocked(convertToArrItems(uploadIds.current.value));
@@ -104,7 +101,7 @@ export default function Page() {
     let stringToArr = items.split('\n');
     return stringToArr.filter(id => {
       // upload id not in blocked id
-      if (blocked_ids.includes(parseInt(id))) {
+      if (blockedIds.includes(parseInt(id))) {
         return id;
       }
     });
@@ -121,7 +118,7 @@ export default function Page() {
   function getItemShouldBeDeleted() {
     let items = [];
     
-    let requests = urls.map(url => APIModuleData.getItemShouldBeDeleted(url));
+    let requests = urls.map(url => APIModuleData.getAPI(url));
     Promise.all(requests).then(promises => {
       promises.forEach((res, index) => {
         setConcurrency(index+1);
@@ -164,7 +161,7 @@ export default function Page() {
           <label className={classes.btnButton}>Blocked Ids
             <Button variant="contained" onClick={getBlockedIds}>Fetch</Button>
           </label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={arrBlockedIds} />;
+          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={blockedIds} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
