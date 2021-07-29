@@ -77,7 +77,7 @@ export default function Page() {
 
   let uploadIds = createRef();
 
-  const url = 'http://127.0.0.1:5500/src/data.json';
+  const url = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
 
   const [itemNotBlocked, setItemNotBlocked] = useState([]);
 
@@ -87,24 +87,39 @@ export default function Page() {
 
   const [blockedIds, setBlockedIds] = useState([]);
 
-  function getBlockedIds() {
-    // get blocked ids
-    APIModuleData.getAPI(url).then(res => {
-      setBlockedIds(res.blocked_ids);
-    });
-    console.log('upload ids: ', uploadIds.current.value);
-    console.log(convertToArrItems('items not blocked: ', uploadIds.current.value));
-    setItemNotBlocked(convertToArrItems(uploadIds.current.value));
-  };
+  async function getBlockedIds() {
+    // get blocked ids API
+    let blocked_ids = await APIModuleData.getAPI(url).then(res => res);
+    let convert_blocked_ids = await convertStringToArr(blocked_ids);
+    let items_not_blocked = await getItemsNotBlocked(blocked_ids);
 
-  function convertToArrItems(items) {
-    let stringToArr = items.split('\n');
-    return stringToArr.filter(id => {
-      // upload id not in blocked id
-      if (blockedIds.includes(parseInt(id))) {
-        return id;
-      }
+    setBlockedIds(convert_blocked_ids);
+    setItemNotBlocked(items_not_blocked);
+  }
+
+  function convertStringToArr(stringArr) {
+    let arr = [];
+    if(stringArr.includes(',')) {
+      arr = stringArr.split(',');
+    } else {
+      arr = stringArr.split('\n');
+    }
+
+    return arr.map(item => {
+      return parseInt(item)
     });
+  }
+
+  function getItemsNotBlocked(blocked_ids) {
+    let upload_ids = uploadIds.current.value;
+    let arr_upload_ids = convertStringToArr(upload_ids);
+
+    return arr_upload_ids.filter(item => {
+      // upload ids - blocked ids
+      if(!blocked_ids.includes(item)) {
+        return item;
+      }
+    })
   }
 
   const urls = [
@@ -142,19 +157,10 @@ export default function Page() {
           <label className={classes.button}>Upload Ids </label>
           <TextareaAutosize ref={uploadIds} aria-label="minimum height" minRows={3} 
             placeholder="
-                35001159
-                35025484
-                35078336
-                35113814
-                35114132
-                35119822
-                34746378
-                34765819
-                35054814
-                35093244
-                34215560
-                34758645
-              "
+              35001159
+              35025484
+              35078336
+            "
           />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
