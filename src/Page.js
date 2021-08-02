@@ -86,15 +86,13 @@ export default function Page() {
 
   const [blockedIds, setBlockedIds] = useState([]);
 
+  const [status, setStatus] = useState();
+
   const [concurrency, setConcurrency] = useState('');
 
   const [disabled, setDisabled] = useState(true);
 
-  // const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
-
-  // let api_sold_out = '';
-
-  // APIModuleData.getAPISoldOut(url_sold_out).then(res => console.log('api_sold_out', res));
+  const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
 
   async function getBlockedIds() {
     // get blocked ids API
@@ -104,6 +102,11 @@ export default function Page() {
 
     setBlockedIds(convert_blocked_ids);
     setItemNotBlocked(items_not_blocked);
+
+    // api sold out
+    await APIModuleData.getAPI(url_sold_out).then(res => {
+      setStatus(res.status)
+    });
   }
 
   function convertStringToArr(stringArr) {
@@ -204,7 +207,7 @@ export default function Page() {
           <label className={classes.btnButton}>Blocked Ids
             <Button variant="contained" onClick={getBlockedIds}>Fetch</Button>
           </label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={blockedIds} />;
+          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={status ? blockedIds : ''} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
