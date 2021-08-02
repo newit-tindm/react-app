@@ -9,6 +9,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import { APIModuleData } from './APIModule';
+import PQueue from 'p-queue/dist';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
   btnConcurrency: {
     marginRight: '10px',
     marginLeft: '10px',
-    width: '5%'
+    width: '10%',
   }
 }));
 
@@ -77,19 +78,27 @@ export default function Page() {
 
   let uploadIds = createRef();
 
-  const url = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
+  const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
 
   const [itemNotBlocked, setItemNotBlocked] = useState([]);
 
   const [itemShouldBeDeleted, setItemShouldBeDeleted] = useState([]);
 
-  const [concurrency, setConcurrency] = useState(0);
-
   const [blockedIds, setBlockedIds] = useState([]);
+
+  const [concurrency, setConcurrency] = useState('');
+
+  const [disabled, setDisabled] = useState(true);
+
+  // const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
+
+  // let api_sold_out = '';
+
+  // APIModuleData.getAPISoldOut(url_sold_out).then(res => console.log('api_sold_out', res));
 
   async function getBlockedIds() {
     // get blocked ids API
-    let blocked_ids = await APIModuleData.getAPI(url).then(res => res);
+    let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
     let convert_blocked_ids = await convertStringToArr(blocked_ids);
     let items_not_blocked = await getItemsNotBlocked(blocked_ids);
 
@@ -127,28 +136,56 @@ export default function Page() {
     'https://jsonplaceholder.typicode.com/todos/2',
     'https://jsonplaceholder.typicode.com/todos/3',
     'https://jsonplaceholder.typicode.com/todos/4',
-    'https://jsonplaceholder.typicode.com/todos/5'
+    'https://jsonplaceholder.typicode.com/todos/5',
+    'https://jsonplaceholder.typicode.com/todos/6',
+    'https://jsonplaceholder.typicode.com/todos/7',
+    'https://jsonplaceholder.typicode.com/todos/8',
+    'https://jsonplaceholder.typicode.com/todos/9',
+    'https://jsonplaceholder.typicode.com/todos/10'
   ];
   
   function getItemShouldBeDeleted() {
-    let items = [];
+    const queue = new PQueue({ concurrency: concurrency });
+
+    const items = [];
+
+    let count = 0;
+
+    // Emitted every time the add method is called and the number of pending or queued tasks is increased.
+    queue.on('add', () => {
+      console.log(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
+    });
     
-    let requests = urls.map(url => APIModuleData.getAPI(url));
-    Promise.all(requests).then(promises => {
-      promises.forEach((res, index) => {
-        setConcurrency(index+1);
-        console.log(res.id);
-        return items.push(res.id);
-      });
-    })
-    console.log(items);
-    setItemShouldBeDeleted(items);
+    // Emitted every time a task is completed and the number of pending or queued tasks is decreased. 
+    queue.on('next', () => {
+      console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
+    });
+
+    // Emitted as each item is processed in the queue for the purpose of tracking progress.
+    queue.on('active', () => {
+      count++;
+      // console.log(`Working on item #${++count}.  Size: ${queue.size}  Pending: ${queue.pending}`);
+      let percent = count*100/urls.length;
+      setProgress(percent);
+    });
+
+    // all promise completed and queue empty
+    queue.on('idle', () => {
+      console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
+      setItemShouldBeDeleted(items);
+      alert('Done!')
+    });
+    
+    urls.map(url => {
+      queue.add(() => APIModuleData.getAPI(url).then(res => items.push(res.id)))
+    });
   }
 
-  useEffect(() => {
-      console.log('concurrency: ', concurrency);
-      setProgress(concurrency*100/urls.length);
-  }, [concurrency]);
+  function handleConcurrencyChange(e) {
+    let value = e.target.value;
+    setConcurrency(parseInt(value));
+    setDisabled(false);
+  }
 
   return (
     <div className={classes.root}>
@@ -185,8 +222,16 @@ export default function Page() {
       </Grid>
       <Grid container spacing={2} className={classes.concurrency}>
         <label >Concurrency</label>
-        <TextField id="outlined-basic" size="small" label={`${concurrency}`} variant="outlined" className={classes.btnConcurrency} disabled={true} />
-        <Button variant="contained" onClick={getItemShouldBeDeleted}>Fetch</Button>
+        <TextField 
+          id="outlined-basic" 
+          size="small" 
+          type="number" 
+          // inputRef={concurrency} 
+          variant="outlined" 
+          className={classes.btnConcurrency} 
+          onChange={handleConcurrencyChange} 
+        />
+        <Button variant="contained" onClick={getItemShouldBeDeleted} disabled={disabled}>Fetch</Button>
       </Grid>
     </div>
   );

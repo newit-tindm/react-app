@@ -6,6 +6,11 @@ class APIModule {
         const item = res.data;
         return item;
     }
+
+    async getAPISoldOut(url) {
+        const res = await axios.get(url);
+        return res;
+    }
 }
 
 export const APIModuleData = new APIModule();
