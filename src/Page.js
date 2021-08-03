@@ -228,7 +228,11 @@ export default function Page() {
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Upload Ids </label>
           <TextareaAutosize ref={upload_ids} aria-label="maximum height" maxRows={5} minRows={5} 
-            placeholder="35001159 35025484 35078336"
+            placeholder="
+              35001159
+              35025484
+              35078336
+            "
           />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
@@ -265,8 +269,7 @@ export default function Page() {
         <TextField 
           id="outlined-basic" 
           size="small" 
-          type="number" 
-          // inputRef={concurrency} 
+          type="number"
           variant="outlined" 
           className={classes.btnConcurrency} 
           onChange={handleConcurrencyChange} 
