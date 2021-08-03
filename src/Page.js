@@ -98,25 +98,17 @@ export default function Page() {
     // get blocked ids API
     let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
     let convert_blocked_ids = await convertStringToArr(blocked_ids);
-    let items_not_blocked = await getItemsNotBlocked(blocked_ids);
+    let items_not_blocked = await getItemsNotBlocked(convert_blocked_ids);
 
     setBlockedIds(convert_blocked_ids);
     setItemNotBlocked(items_not_blocked);
-
-    // api sold out
-    await APIModuleData.getAPI(url_sold_out).then(res => {
-      setStatus(res.status)
-    });
   }
 
   function convertStringToArr(stringArr) {
     let arr = [];
-    if(stringArr.includes(',')) {
-      arr = stringArr.split(',');
-    } else {
-      arr = stringArr.split('\n');
-    }
-
+    let re = /\s|,\s|,/; // ' ' or ', ' or '\n' 
+    arr = stringArr.split(re);
+    
     return arr.map(item => {
       return parseInt(item)
     });
@@ -147,7 +139,7 @@ export default function Page() {
     'https://jsonplaceholder.typicode.com/todos/10'
   ];
   
-  function getItemShouldBeDeleted() {
+  async function getItemShouldBeDeleted() {
     const queue = new PQueue({ concurrency: concurrency });
 
     const items = [];
@@ -182,6 +174,11 @@ export default function Page() {
     urls.map(url => {
       queue.add(() => APIModuleData.getAPI(url).then(res => items.push(res.id)))
     });
+
+    // api sold out
+    await APIModuleData.getAPI(url_sold_out).then(res => {
+      setStatus(res.status)
+    });
   }
 
   function handleConcurrencyChange(e) {
@@ -196,18 +193,14 @@ export default function Page() {
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Upload Ids </label>
           <TextareaAutosize ref={uploadIds} aria-label="minimum height" minRows={3} 
-            placeholder="
-              35001159
-              35025484
-              35078336
-            "
+            placeholder="35001159 35025484 35078336"
           />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.btnButton}>Blocked Ids
             <Button variant="contained" onClick={getBlockedIds}>Fetch</Button>
           </label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={status ? blockedIds : ''} />;
+          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={blockedIds} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
@@ -215,7 +208,7 @@ export default function Page() {
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Item should be deleted</label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={itemShouldBeDeleted} />;
+          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={status ? itemShouldBeDeleted : ''} />;
         </Grid>
       </Grid>
       <Grid container spacing={2}>
