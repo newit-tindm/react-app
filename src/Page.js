@@ -36,12 +36,13 @@ const useStyles = makeStyles((theme) => ({
       textAlign: 'center',
   },
   button: {
-    marginBottom: '30px'
+    marginBottom: '20px'
   },
   btnButton: {
     marginBottom: '4px',
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    marginTop: '-11px'
   },
   btnFetch1: {
     marginLeft: '10px',
@@ -62,6 +63,9 @@ const useStyles = makeStyles((theme) => ({
     width: '5%',
   },
   label: {
+    marginTop: '10px',
+  },
+  areaBtn: {
     marginTop: '10px',
   }
 }));
@@ -126,7 +130,7 @@ export default function Page() {
       setBlockedIds(blocked_ids);
       setItemNotBlocked(items_not_blocked);
     } else {
-      alert('Please enter upload ids!');
+      alert('Please input upload ids!');
     }
   }
 
@@ -248,7 +252,7 @@ export default function Page() {
               </div>
             }
           </Box>
-          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={blockedIds} />;
+          <TextareaAutosize className={classes.areaBtn} aria-label="maximum height" maxRows={5} minRows={5} defaultValue={blockedIds} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
