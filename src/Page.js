@@ -10,6 +10,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import { APIModuleData } from './APIModule';
 import PQueue from 'p-queue/dist';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,6 +18,12 @@ const useStyles = makeStyles((theme) => ({
     width: '60%',
     marginLeft: '20%',
     marginTop: '50px'
+  },
+  rootLoading: {
+    display: 'flex',
+    '& > * + *': {
+      marginLeft: theme.spacing(2),
+    },
   },
   paper: {
     padding: theme.spacing(2),
@@ -29,10 +36,16 @@ const useStyles = makeStyles((theme) => ({
       textAlign: 'center',
   },
   button: {
-    marginBottom: '20px'
+    marginBottom: '30px'
   },
   btnButton: {
     marginBottom: '4px',
+    display: 'flex',
+    justifyContent: 'center'
+  },
+  btnFetch1: {
+    marginLeft: '10px',
+    marginRight: '10px',
   },
   progress: {
     width: '50%',
@@ -46,7 +59,10 @@ const useStyles = makeStyles((theme) => ({
   btnConcurrency: {
     marginRight: '10px',
     marginLeft: '10px',
-    width: '10%',
+    width: '5%',
+  },
+  label: {
+    marginTop: '10px',
   }
 }));
 
@@ -76,7 +92,7 @@ export default function Page() {
   const classes = useStyles();
   const [progress, setProgress] = useState(0);
 
-  let uploadIds = createRef();
+  let upload_ids = createRef();
 
   const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
 
@@ -92,16 +108,26 @@ export default function Page() {
 
   const [disabled, setDisabled] = useState(true);
 
+  const [isLoading, setIsLoading] = useState(false)
+
   const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
 
   async function getBlockedIds() {
-    // get blocked ids API
-    let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
-    let convert_blocked_ids = await convertStringToArr(blocked_ids);
-    let items_not_blocked = await getItemsNotBlocked(convert_blocked_ids);
+    
+    let value_upload_ids =  upload_ids.current.value;
+    
+    if (value_upload_ids) {
+      setIsLoading(true);
+      // get blocked ids API
+      let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
+      let convert_blocked_ids = await convertStringToArr(blocked_ids);
+      let items_not_blocked = await getItemsNotBlocked(convert_blocked_ids, value_upload_ids);
 
-    setBlockedIds(convert_blocked_ids);
-    setItemNotBlocked(items_not_blocked);
+      setBlockedIds(blocked_ids);
+      setItemNotBlocked(items_not_blocked);
+    } else {
+      alert('Please enter upload ids!');
+    }
   }
 
   function convertStringToArr(stringArr) {
@@ -114,16 +140,17 @@ export default function Page() {
     });
   }
 
-  function getItemsNotBlocked(blocked_ids) {
-    let upload_ids = uploadIds.current.value;
-    let arr_upload_ids = convertStringToArr(upload_ids);
+  function getItemsNotBlocked(blocked_ids, upload_ids) {
+      let arr_upload_ids = convertStringToArr(upload_ids);
 
-    return arr_upload_ids.filter(item => {
-      // upload ids - blocked ids
-      if(!blocked_ids.includes(item)) {
-        return item;
-      }
-    })
+      let items_not_blocked = arr_upload_ids.filter(item => {
+        // upload ids - blocked ids
+        if(!blocked_ids.includes(item)) {
+          return item;
+        }
+      })
+
+      return dataOutput(items_not_blocked);
   }
 
   const urls = [
@@ -167,7 +194,7 @@ export default function Page() {
     // all promise completed and queue empty
     queue.on('idle', () => {
       console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
-      setItemShouldBeDeleted(items);
+      setItemShouldBeDeleted(dataOutput(items));
       alert('Done!')
     });
     
@@ -187,28 +214,45 @@ export default function Page() {
     setDisabled(false);
   }
 
+  function dataOutput(data) {
+    return data.toString().replaceAll(',', '\n');
+  }
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, [itemNotBlocked])
+
   return (
     <div className={classes.root}>
       <Grid container spacing={2} >
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Upload Ids </label>
-          <TextareaAutosize ref={uploadIds} aria-label="minimum height" minRows={3} 
+          <TextareaAutosize ref={upload_ids} aria-label="maximum height" maxRows={5} minRows={5} 
             placeholder="35001159 35025484 35078336"
           />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
-          <label className={classes.btnButton}>Blocked Ids
-            <Button variant="contained" onClick={getBlockedIds}>Fetch</Button>
-          </label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={blockedIds} />;
+          <Box component="div" m={1} className={classes.btnButton}>
+            <label className={classes.label}>Blocked Ids</label>
+            <Button className={classes.btnFetch1} variant="contained" onClick={getBlockedIds} disabled={isLoading}>Fetch</Button>
+            {isLoading && 
+              <div className={classes.rootLoading}>
+                <CircularProgress 
+                  color="primary"
+                  size={30}
+                />
+              </div>
+            }
+          </Box>
+          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={blockedIds} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={itemNotBlocked} />;
+          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={itemNotBlocked} />;
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Item should be deleted</label>
-          <TextareaAutosize aria-label="minimum height" minRows={3} defaultValue={status ? itemShouldBeDeleted : ''} />;
+          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={status ? itemShouldBeDeleted : ''} />;
         </Grid>
       </Grid>
       <Grid container spacing={2}>
