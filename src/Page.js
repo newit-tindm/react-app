@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
   display: {
       display: 'grid',
-      marginBottom: '10px',
+      marginBottom: '30px',
       textAlign: 'center',
   },
   button: {
@@ -96,13 +96,13 @@ export default function Page() {
   const classes = useStyles();
   const [progress, setProgress] = useState(0);
 
-  let upload_ids = createRef();
-
   const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
 
   const [itemNotBlocked, setItemNotBlocked] = useState([]);
 
   const [itemShouldBeDeleted, setItemShouldBeDeleted] = useState([]);
+
+  const [uploadIds, setUploadIds] = useState([]);
 
   const [blockedIds, setBlockedIds] = useState([]);
 
@@ -112,27 +112,25 @@ export default function Page() {
 
   const [disabled, setDisabled] = useState(true);
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
 
   async function getBlockedIds() {
-    
-    let value_upload_ids =  upload_ids.current.value;
-    
-    if (value_upload_ids) {
-      setIsLoading(true);
-      // get blocked ids API
-      let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
-      let convert_blocked_ids = await convertStringToArr(blocked_ids);
-      let items_not_blocked = await getItemsNotBlocked(convert_blocked_ids, value_upload_ids);
+    setIsLoading(true);
+    // get blocked ids API
+    let blocked_ids = await APIModuleData.getAPI(url_blocked_ids).then(res => res);
+    setBlockedIds(blocked_ids);
 
-      setBlockedIds(blocked_ids);
-      setItemNotBlocked(items_not_blocked);
-    } else {
-      alert('Please input upload ids!');
-    }
   }
+
+  useEffect(() => {
+    console.log('object');
+
+    if(blockedIds.length > 0) {
+      setUploadIds([]);
+    }
+  },[uploadIds])
 
   function convertStringToArr(stringArr) {
     let arr = [];
@@ -145,9 +143,7 @@ export default function Page() {
   }
 
   function getItemsNotBlocked(blocked_ids, upload_ids) {
-      let arr_upload_ids = convertStringToArr(upload_ids);
-
-      let items_not_blocked = arr_upload_ids.filter(item => {
+      let items_not_blocked = upload_ids.filter(item => {
         // upload ids - blocked ids
         if(!blocked_ids.includes(item)) {
           return item;
@@ -212,7 +208,7 @@ export default function Page() {
     });
   }
 
-  function handleConcurrencyChange(e) {
+  function handleConcurrency(e) {
     let value = e.target.value;
     setConcurrency(parseInt(value));
     setDisabled(false);
@@ -222,22 +218,43 @@ export default function Page() {
     return data.toString().replaceAll(',', '\n');
   }
 
+  const handleItemsNotBlocked = async (blocked_ids, upload_ids) => {
+    let convert_blocked_ids = await convertStringToArr(blocked_ids);
+    let convert_upload_ids = await convertStringToArr(upload_ids);
+    let items_not_blocked = await getItemsNotBlocked(convert_blocked_ids, convert_upload_ids);
+    return setItemNotBlocked(items_not_blocked);
+  }
+
+  const handleUploadIds = (e) => {
+    if (!blockedIds.length) { // blocked ids is null
+      // setUploadIds()
+      setItemNotBlocked(e.target.value)
+    } else {
+      handleItemsNotBlocked(blockedIds, e.target.value);
+    }
+  }
+
   useEffect(() => {
     setIsLoading(false);
-  }, [itemNotBlocked])
+  }, [blockedIds]);
 
   return (
     <div className={classes.root}>
       <Grid container spacing={2} >
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Upload Ids </label>
-          <TextareaAutosize ref={upload_ids} aria-label="maximum height" maxRows={5} minRows={5} 
+          <TextareaAutosize
+            aria-label="maximum height" 
+            maxRows={30} 
+            minRows={30}
+            onChange={handleUploadIds}
+            defaultValue={uploadIds}
             placeholder="
               35001159
               35025484
               35078336
             "
-          />;
+          />
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <Box component="div" m={1} className={classes.btnButton}>
@@ -252,15 +269,15 @@ export default function Page() {
               </div>
             }
           </Box>
-          <TextareaAutosize className={classes.areaBtn} aria-label="maximum height" maxRows={5} minRows={5} defaultValue={blockedIds} />;
+          <TextareaAutosize className={classes.areaBtn} aria-label="maximum height" maxRows={30} minRows={30} defaultValue={blockedIds} />
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Items not blocked</label>
-          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={itemNotBlocked} />;
+          <TextareaAutosize aria-label="maximum height" maxRows={30} minRows={30} defaultValue={itemNotBlocked} />
         </Grid>
         <Grid item xs={3} md={3} className={classes.display}>
           <label className={classes.button}>Item should be deleted</label>
-          <TextareaAutosize aria-label="maximum height" maxRows={5} minRows={5} defaultValue={status ? itemShouldBeDeleted : ''} />;
+          <TextareaAutosize aria-label="maximum height" maxRows={30} minRows={30} defaultValue={status ? itemShouldBeDeleted : ''} />
         </Grid>
       </Grid>
       <Grid container spacing={2}>
@@ -276,7 +293,7 @@ export default function Page() {
           type="number"
           variant="outlined" 
           className={classes.btnConcurrency} 
-          onChange={handleConcurrencyChange} 
+          onChange={handleConcurrency} 
         />
         <Button variant="contained" onClick={getItemShouldBeDeleted} disabled={disabled}>Fetch</Button>
       </Grid>
