@@ -164,7 +164,7 @@ export default function Page() {
   async function getItemsShouldBeDeleted() {
     let sold_out = await APIModuleData.getAPI(url_sold_out).then(res => res.status);
 
-    if (true && itemsNotBlocked.length) {
+    if (sold_out && itemsNotBlocked.length) {
       const items_should_be_deleted = convertStringToArr(itemsNotBlocked);
       
       const queue = new PQueue({ concurrency: concurrency });
