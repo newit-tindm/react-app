@@ -160,7 +160,7 @@ export default function Page() {
     return items_not_blocked;
   }
   
-  async function getItemsShouldBeDeleted() {
+  function getItemsShouldBeDeleted() {
     if (itemsNotBlocked.length) {
       setDisabled(true);
       const items_should_be_deleted = convertStringToArr(itemsNotBlocked);
@@ -179,7 +179,6 @@ export default function Page() {
       // Emitted every time a task is completed and the number of pending or queued tasks is decreased. 
       queue.on('next', () => {
         console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
-        // console.log('items ', items)
         let percent = (++count)*100/items_should_be_deleted.length;
         setProgress(percent);
       });
@@ -191,16 +190,19 @@ export default function Page() {
         setDisabled(false);
         alert('Done!');
       });
+
+      // Emitted when an item completes without error
+      queue.on('completed', result => {
+        if(result[0].status) {
+          items.push(result[1])
+        }
+      });
       
-      await items_should_be_deleted.map((id, index) => {
-        queue.add(() => APIModuleData.getAPI(url_sold_out + id).then(res => {
-          // run in queue.on('next')
-          if(res.status) {
-            return items.push(id)
-          }
-        }));
+      items_should_be_deleted.map((id, index) => {
+        queue.add(() => APIModuleData.getAPISoldOut(url_sold_out+id, id));
         console.log('added ', index);
       });
+
     }
   }
 
