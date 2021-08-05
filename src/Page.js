@@ -162,6 +162,7 @@ export default function Page() {
   
   async function getItemsShouldBeDeleted() {
     if (itemsNotBlocked.length) {
+      setDisabled(true);
       const items_should_be_deleted = convertStringToArr(itemsNotBlocked);
       
       const queue = new PQueue({ concurrency: concurrency });
@@ -187,6 +188,7 @@ export default function Page() {
       queue.on('idle', () => {
         console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
         setItemsShouldBeDeleted(dataOutput(items));
+        setDisabled(false);
         alert('Done!');
       });
       
