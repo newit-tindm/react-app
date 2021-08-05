@@ -71,14 +71,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function LinearProgressWithLabel(props) {
-  console.log('progress ', props.value);
   return (
     <Box display="flex" alignItems="center">
       <Box width="100%" mr={1}>
         <LinearProgress variant="determinate" {...props} />
       </Box>
       <Box minWidth={35}>
-        <Typography variant="body2" color="textSecondary">{`${props.value}%`}</Typography>
+        <Typography variant="body2" color="textSecondary">{`${(props.value).toFixed()}%`}</Typography>
       </Box>
     </Box>
   );
@@ -116,7 +115,7 @@ export default function Page() {
 
   const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
 
-  const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/33776097';
+  const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/';
 
   async function getBlockedIds() {
     if(!blockedIds.length) {
@@ -162,9 +161,7 @@ export default function Page() {
   }
   
   async function getItemsShouldBeDeleted() {
-    let sold_out = await APIModuleData.getAPI(url_sold_out).then(res => res.status);
-
-    if (sold_out && itemsNotBlocked.length) {
+    if (itemsNotBlocked.length) {
       const items_should_be_deleted = convertStringToArr(itemsNotBlocked);
       
       const queue = new PQueue({ concurrency: concurrency });
@@ -181,22 +178,26 @@ export default function Page() {
       // Emitted every time a task is completed and the number of pending or queued tasks is decreased. 
       queue.on('next', () => {
         console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
+        // console.log('items ', items)
         let percent = (++count)*100/items_should_be_deleted.length;
         setProgress(percent);
-        if(percent === 100) {
-          alert('Done!');
-        }
       });
 
       // all promise completed and queue empty
       queue.on('idle', () => {
         console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
         setItemsShouldBeDeleted(dataOutput(items));
-        
+        alert('Done!');
       });
       
-      items_should_be_deleted.map(item => {
-        queue.add(() => items.push(item));
+      await items_should_be_deleted.map((id, index) => {
+        queue.add(() => APIModuleData.getAPI(url_sold_out + id).then(res => {
+          // run in queue.on('next')
+          if(res.status) {
+            return items.push(id)
+          }
+        }));
+        console.log('added ', index);
       });
     }
   }
