@@ -197,12 +197,16 @@ export default function Page() {
           items.push(result[1])
         }
       });
+
+      // Emitted if an item throws an error.
+      queue.on('error', error => {
+        console.error(error);
+      });
       
       items_should_be_deleted.map((id, index) => {
-        queue.add(() => APIModuleData.getAPISoldOut(url_sold_out+id, id));
+        queue.add(() => APIModuleData.getAPISoldOut(url_sold_out+id, id)).then(res => res).catch(err => err);                          
         console.log('added ', index);
       });
-
     }
   }
 
