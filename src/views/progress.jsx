@@ -39,6 +39,11 @@ const useStyles = makeStyles((theme) => ({
     },
     marginLeft: '10px'
   },
+
+  layout: {
+    height: '35px !important',
+    width: '35px !important'
+  }
 }));
 
 export const ProgressBar = ({ progress }) => {
@@ -56,7 +61,7 @@ export const ProgressLoading = () => {
 
   return (
     <div className={classes.loading}>
-      <CircularProgress color="primary" />
+      <CircularProgress color="primary" className={classes.layout} />
     </div>
   );
 }
