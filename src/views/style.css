@@ -1,0 +1,37 @@
+.layout {
+    flex-grow: 1;
+    width: 60%;
+    margin-left: 20%;
+    margin-top: 50px;
+}
+
+.input-textarea {
+    width: 100%;
+}
+
+.box-blocked-ids {
+    display: flex;
+    flex-direction: row;
+    margin-top: 40px;
+    margin-bottom: 19px;
+}
+
+.label-text {
+    margin-top: 50px;
+    padding-bottom: 30px;
+}
+
+.label-box {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.label-concurrency {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.input-concurrency {
+    margin-right: 10px !important;
+    width: 5%;
+}
