@@ -63,7 +63,7 @@ export default function Page() {
     return items_not_blocked;
   }
   
-  const getItemsShouldBeDeleted = () => {
+  const getItemsShouldBeDeleted = async () => {
     if (itemsNotBlocked.length) {
       setDisabled(true);
 
@@ -74,26 +74,27 @@ export default function Page() {
       const queue = new PQueue({ concurrency: 1 });
 
       const items = [];
+
       let count = 0;
 
       // Emitted every time the add method is called and the number of pending or queued tasks is increased.
-      queue.on('add', () => {
-        console.log(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
-      });
+      // queue.on('add', () => {
+      //   console.log(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
+      // });
       
       // Emitted every time a task is completed and the number of pending or queued tasks is decreased. 
       queue.on('next', () => {
-        console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
+        // console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
         let percent = (++count)*100/arr_items.length;
         setProgress(percent);
       });
 
       // all promise completed and queue empty
       queue.on('idle', () => {
-        console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
+        // console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
         setItemsShouldBeDeleted(dataOutput(items));
         setDisabled(false);
-        alert('Done!');
+        // alert('Done!');
       });
 
       // Emitted when an item completes without error
@@ -111,8 +112,10 @@ export default function Page() {
       });
       
       arr_items.map((ids, index) => {
-        queue.add(() => APIModule.postAPI(url_sold_out, ids));                    
-        console.log('added ', index);
+        setTimeout(() => {
+          queue.add(() => APIModule.postAPI(url_sold_out, ids));
+          console.log('remaining ', arr_items.length-index);
+        }, 5000*index);
       });
     }
   }
