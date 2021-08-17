@@ -7,18 +7,12 @@ class fetchAPI {
         return item;
     }
 
-    async postAPI(url, body) {
-        const res = await axios.post(url, {
-                items_id: body
-            })
-            .then(function (response) {
-                console.log(response);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-
-        return res;     
+    async postAPI(url, ids) {
+        const res = await axios.post(url, `{"item_ids": [${ids}]}`)
+            .then(res => res.data)
+            .catch(error => console.log(error));
+            
+        return res;
     }
 }
 

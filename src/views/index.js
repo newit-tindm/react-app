@@ -21,9 +21,9 @@ export default function Page() {
   const [progress, setProgress] = useState(0);
 
   const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
-  const url_sold_out = 'https://d32kd3i4w6exck.cloudfront.net/api/is-sold-out/';
+  const url_sold_out = 'https://k53bmxe71g.execute-api.ap-northeast-1.amazonaws.com/Stage/is-sold-out';
 
-  async function getBlockedIds() {
+  const getBlockedIds = async () => {
     if(!blockedIds.length) {
       setIsLoading(true);
     }
@@ -44,7 +44,7 @@ export default function Page() {
     return convert_to_arr.filter(item => item);
   }
 
-  function convertStringToArr(str) {
+  const convertStringToArr = (str) => {
     let re = /\s|,\s|,/; // (' ' || ', ' || '\n')
     let arr = str.split(re);
     return arr.map(item => {
@@ -52,7 +52,7 @@ export default function Page() {
     });
   }
 
-  function getItemsNotBlocked(blocked_ids, upload_ids) {
+  const getItemsNotBlocked = (blocked_ids, upload_ids) => {
     let items_not_blocked = upload_ids.filter(item => {
       // upload ids - blocked ids
       if(!blocked_ids.includes(item)) {
@@ -63,11 +63,12 @@ export default function Page() {
     return items_not_blocked;
   }
   
-  function getItemsShouldBeDeleted() {
+  const getItemsShouldBeDeleted = () => {
     if (itemsNotBlocked.length) {
       setDisabled(true);
 
       const items_not_blocked = convertStringToArr(itemsNotBlocked);
+
       const arr_items = chunkArray(items_not_blocked, concurrency);
     
       const queue = new PQueue({ concurrency: 1 });
@@ -97,10 +98,11 @@ export default function Page() {
 
       // Emitted when an item completes without error
       queue.on('completed', result => {
-        console.log('result ', result);
-        // if(result[0].status) {
-        //   items.push(result[1])
-        // }
+        result.data.filter(item => {
+          if(item.status) {
+            return items.push(item.id);
+          }
+        })
       });
 
       // Emitted if an item throws an error.
@@ -109,28 +111,13 @@ export default function Page() {
       });
       
       arr_items.map((ids, index) => {
-        queue.add(() => APIModule.postAPI(url_sold_out, ids)).then(res => res).catch(err => err);                          
+        queue.add(() => APIModule.postAPI(url_sold_out, ids));                    
         console.log('added ', index);
       });
     }
   }
 
-  // async function getItemsShouldBeDeleted() {
-  //   if (itemsNotBlocked.length) {
-  //     setDisabled(true);
-
-  //     const items_not_blocked = convertStringToArr(itemsNotBlocked);
-
-  //     const items = [];
-
-  //     chunkArray(items_not_blocked, concurrency).map(arr_id => {
-  //       const arr = await APIModule.postAPI(url_sold_out, arr_id);
-  //       return 
-  //     });
-  //   }
-  // }
-
-  function chunkArray(array, size) {
+  const chunkArray = (array, size) => {
     let result = []
     for (let i = 0; i < array.length; i += size) {
         let chunk = array.slice(i, i + size)
@@ -139,13 +126,13 @@ export default function Page() {
     return result
   }
 
-  function handleConcurrency(e) {
+  const handleConcurrency = (e) => {
     let value = e.target.value;
     setConcurrency(parseInt(value));
     setDisabled(false);
   }
 
-  function dataOutput(data) {
+  const dataOutput = (data) => {
     return data.toString().replaceAll(',', '\n');
   }
 
