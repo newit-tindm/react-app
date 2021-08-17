@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import TextField from '@material-ui/core/TextField';
 import Box from '@material-ui/core/Box';
 import { APIModule } from '../APIModule';
-import PQueue from 'p-queue/dist';
 import { ProgressBar } from './progress.jsx';
 import InputTextarea from './inputTextarea.jsx';
 import FetchButton from './fetchButton';
@@ -62,7 +61,7 @@ export default function Page() {
 
     return items_not_blocked;
   }
-  
+
   const getItemsShouldBeDeleted = async () => {
     if (itemsNotBlocked.length) {
       setDisabled(true);
@@ -70,55 +69,30 @@ export default function Page() {
       const items_not_blocked = convertStringToArr(itemsNotBlocked);
 
       const arr_items = chunkArray(items_not_blocked, concurrency);
-    
-      const queue = new PQueue();
 
       const items = [];
-
-      let count = 0;
-
-      // Emitted every time the add method is called and the number of pending or queued tasks is increased.
-      // queue.on('add', () => {
-      //   console.log(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
-      // });
       
-      // Emitted every time a task is completed and the number of pending or queued tasks is decreased. 
-      queue.on('next', () => {
-        // console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
+      let count = 0
+
+      for (const item of arr_items) {
+        const res = await APIModule.postAPI(url_sold_out, item);
+
+        await res.data.filter(data => {
+          if (data.status === true) {
+            return items.push(data.id);
+          }
+        });
+
         let percent = (++count)*100/arr_items.length;
+
         setProgress(percent);
+
         if(percent==100) {
           alert('Done!');
         }
-      });
 
-      // all promise completed and queue empty
-      queue.on('idle', () => {
-        // console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
         setItemsShouldBeDeleted(dataOutput(items));
-        setDisabled(false);
-      });
-
-      // Emitted when an item completes without error
-      queue.on('completed', result => {
-        result.data.filter(item => {
-          if(item.status) {
-            return items.push(item.id);
-          }
-        })
-      });
-
-      // Emitted if an item throws an error.
-      queue.on('error', error => {
-        console.error(error);
-      });
-      
-      arr_items.map((ids, index) => {
-        setTimeout(() => {
-          queue.add(() => APIModule.postAPI(url_sold_out, ids));
-          console.log('request remaining: ', arr_items.length-(index+1));
-        }, 5000*index);
-      });
+      }
     }
   }
 
