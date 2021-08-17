@@ -1,18 +1,20 @@
-import axios from 'axios';
-
 class fetchAPI {
     async getAPI(url) {
-        const res = await axios.get(url);
-        const item = res.data;
-        return item;
+        return await fetch(url)
+            .then(res => res.text())
+            .catch(error => console.error('Error: ', error));
     }
 
     async postAPI(url, ids) {
-        const res = await axios.post(url, `{"item_ids": [${ids}]}`)
-            .then(res => res.data)
-            .catch(error => console.error(error));
+        const res = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({ "item_ids": ids })
+            })
+            .then(res => res.json())
+            .then(data => data)
+            .catch(error => console.error('Error: ', error));
             
-        return res;
+        return await res.data;
     }
 }
 

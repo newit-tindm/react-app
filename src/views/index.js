@@ -27,11 +27,12 @@ export default function Page() {
       setIsLoading(true);
     }
     // get blocked ids API
-    let blocked_ids = await APIModule.getAPI(url_blocked_ids).then(res => res);
+    let blocked_ids = await APIModule.getAPI(url_blocked_ids);
     if(uploadIds.length) {
       const remove_empty_line = removeEmptyLines(uploadIds);
       setUploadIds(dataOutput(remove_empty_line));
-      const items_not_blocked = getItemsNotBlocked(blocked_ids, remove_empty_line);
+      const convert_blocked_ids = convertStringToArr(blocked_ids);
+      const items_not_blocked = getItemsNotBlocked(convert_blocked_ids, remove_empty_line);
       setCountItems(items_not_blocked.length);
       setItemsNotBlocked(dataOutput(items_not_blocked));
     }
@@ -39,8 +40,8 @@ export default function Page() {
   }
 
   const removeEmptyLines = (data) => {
-    const convert_to_arr = convertStringToArr(data);
-    return convert_to_arr.filter(item => item);
+    const convert_to_arr = convertStringToArr(data.trim());
+    return convert_to_arr;
   }
 
   const convertStringToArr = (str) => {
@@ -58,41 +59,34 @@ export default function Page() {
         return item;
       }
     })
-
     return items_not_blocked;
   }
 
   const getItemsShouldBeDeleted = async () => {
     if (itemsNotBlocked.length) {
       setDisabled(true);
-
       const items_not_blocked = convertStringToArr(itemsNotBlocked);
-
       const arr_items = chunkArray(items_not_blocked, concurrency);
-
       const items = [];
-      
-      let count = 0
+      let count = 0;
 
       for (const item of arr_items) {
         const res = await APIModule.postAPI(url_sold_out, item);
-
-        await res.data.filter(data => {
-          if (data.status === true) {
+        res.filter(data => {
+          if (data && data.status) {
             return items.push(data.id);
           }
         });
-
-        let percent = (++count)*100/arr_items.length;
-
+        let percent = ++count*100/arr_items.length;
+        // console.log('percent ', percent);
+        // console.log('ids: ', count);
         setProgress(percent);
-
-        if(percent==100) {
+        if(percent === 100) {
           alert('Done!');
         }
-
         setItemsShouldBeDeleted(dataOutput(items));
       }
+      setDisabled(false);
     }
   }
 
