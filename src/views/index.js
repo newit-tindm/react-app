@@ -71,7 +71,7 @@ export default function Page() {
 
       const arr_items = chunkArray(items_not_blocked, concurrency);
     
-      const queue = new PQueue({ concurrency: 1 });
+      const queue = new PQueue();
 
       const items = [];
 
@@ -87,6 +87,9 @@ export default function Page() {
         // console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
         let percent = (++count)*100/arr_items.length;
         setProgress(percent);
+        if(percent==100) {
+          alert('Done!');
+        }
       });
 
       // all promise completed and queue empty
@@ -94,7 +97,6 @@ export default function Page() {
         // console.log(`Queue is idle.  Size: ${queue.size}  Pending: ${queue.pending}`);
         setItemsShouldBeDeleted(dataOutput(items));
         setDisabled(false);
-        // alert('Done!');
       });
 
       // Emitted when an item completes without error
@@ -114,7 +116,7 @@ export default function Page() {
       arr_items.map((ids, index) => {
         setTimeout(() => {
           queue.add(() => APIModule.postAPI(url_sold_out, ids));
-          console.log('remaining ', arr_items.length-index);
+          console.log('request remaining: ', arr_items.length-(index+1));
         }, 5000*index);
       });
     }
