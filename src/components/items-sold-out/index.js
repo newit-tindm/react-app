@@ -125,6 +125,7 @@ export default function ItemsSoldOut() {
     setUploadIds(e.target.value)
     if (!blockedIds.length) { // blocked ids is null
       setItemsNotBlocked(e.target.value);
+      setDisabled(false);
       let items = convertStringToArr(e.target.value);
       setCountItems(items.length);
     } else {
