@@ -7,7 +7,7 @@ import InputTextarea from './inputTextarea.jsx';
 import FetchButton from './fetchButton';
 import './style.css';
 
-export default function Page() {
+export default function ItemsSoldOut() {
 
   const [itemsNotBlocked, setItemsNotBlocked] = useState([]);
   const [itemsShouldBeDeleted, setItemsShouldBeDeleted] = useState([]);
@@ -59,6 +59,10 @@ export default function Page() {
         return item;
       }
     })
+    // check items_not_blocked to enable button fetch
+    if(items_not_blocked.length) {
+      setDisabled(false);
+    }
     return items_not_blocked;
   }
 
@@ -118,7 +122,6 @@ export default function Page() {
   }
 
   const handleUploadIds = (e) => {
-    setDisabled(false);
     setUploadIds(e.target.value)
     if (!blockedIds.length) { // blocked ids is null
       setItemsNotBlocked(e.target.value);
