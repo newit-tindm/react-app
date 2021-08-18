@@ -13,7 +13,7 @@ export default function Page() {
   const [itemsShouldBeDeleted, setItemsShouldBeDeleted] = useState([]);
   const [uploadIds, setUploadIds] = useState([]);
   const [blockedIds, setBlockedIds] = useState([]);
-  const [concurrency, setConcurrency] = useState('');
+  const [concurrency, setConcurrency] = useState(300);
   const [disabled, setDisabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [countItems, setCountItems] = useState(0);
@@ -100,9 +100,9 @@ export default function Page() {
   }
 
   const handleConcurrency = (e) => {
-    let value = e.target.value;
-    setConcurrency(parseInt(value));
-    setDisabled(false);
+    let strValue = e.target.value;
+    let value = parseInt(strValue);
+    setConcurrency(value >= 50 ? value : concurrency);
   }
 
   const dataOutput = (data) => {
@@ -118,6 +118,7 @@ export default function Page() {
   }
 
   const handleUploadIds = (e) => {
+    setDisabled(false);
     setUploadIds(e.target.value)
     if (!blockedIds.length) { // blocked ids is null
       setItemsNotBlocked(e.target.value);
@@ -184,6 +185,7 @@ export default function Page() {
           type="number"
           variant="outlined" 
           className="input-concurrency" 
+          defaultValue={concurrency}
           onChange={handleConcurrency} 
         /> 
         <FetchButton onClick={getItemsShouldBeDeleted} disabled={disabled} />

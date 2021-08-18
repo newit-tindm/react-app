@@ -34,5 +34,8 @@
 .input-concurrency {
     margin-right: 10px !important;
     width: 5%;
+}
+
+#outlined-basic {
     text-align: center;
 }
