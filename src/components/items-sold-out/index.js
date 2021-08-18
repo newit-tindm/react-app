@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TextField from '@material-ui/core/TextField';
 import Box from '@material-ui/core/Box';
 import { APIModule } from '../APIModule';
@@ -18,6 +18,7 @@ export default function ItemsSoldOut() {
   const [isLoading, setIsLoading] = useState(false);
   const [countItems, setCountItems] = useState(0);
   const [progress, setProgress] = useState(0);
+  const inputRef = useRef();
 
   const url_blocked_ids = 'https://d32kd3i4w6exck.cloudfront.net/api/get-blocked-ids';
   const url_sold_out = 'https://k53bmxe71g.execute-api.ap-northeast-1.amazonaws.com/Stage/is-sold-out';
@@ -122,10 +123,11 @@ export default function ItemsSoldOut() {
   }
 
   const handleUploadIds = (e) => {
+
     setUploadIds(e.target.value)
     if (!blockedIds.length) { // blocked ids is null
       setItemsNotBlocked(e.target.value);
-      setDisabled(false);
+      setDisabled(true);
       let items = convertStringToArr(e.target.value);
       setCountItems(items.length);
     } else {
@@ -145,7 +147,7 @@ export default function ItemsSoldOut() {
         justifyContent="center"
       >
         <InputTextarea 
-          label={'Uploaded ids'}
+          label={'Uploaded ids on Tmall'}
           placeholder="
             12345678
             12344555
@@ -154,18 +156,19 @@ export default function ItemsSoldOut() {
           onChange={handleUploadIds}
         />
         <InputTextarea
-          label={'Blocked ids'}
+          label={'Blocked ids on Brandear'}
           isLoading={isLoading}
           value={blockedIds}
           btnClick={getBlockedIds}
         />
         <InputTextarea 
-          label={'Items not blocked'}
+          label={'Items not blocked on Brandear'}
           value={itemsNotBlocked}
         />
         <InputTextarea 
-          label={'Items should be deleted'}
+          label={'Items should be deleted on Tmall'}
           value={itemsShouldBeDeleted}
+          handleCopy={true}
         />
       </Box>
       <Box 
