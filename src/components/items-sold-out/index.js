@@ -203,7 +203,7 @@ export default function ItemsSoldOut() {
         justifyContent="center"
         p={2}
       >
-        <label> Items: {countItems} </label>
+        <label> Total uploaded ids: {countItems} </label>
       </Box>
     </div>
   );
