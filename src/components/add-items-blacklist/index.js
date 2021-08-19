@@ -1,12 +1,20 @@
-import React from 'react';
-import { Box, Grid } from '@material-ui/core';
-import NativeSelect from '@material-ui/core/NativeSelect';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
-import InputBase from '@material-ui/core/InputBase';
-import FormControl from '@material-ui/core/FormControl';
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import Button from '@material-ui/core/Button';
-import RadioButton from './radioButton.jsx';
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Grid, 
+  InputLabel,
+  NativeSelect,
+  makeStyles,
+  withStyles,
+  InputBase,
+  FormControl,
+  TextareaAutosize,
+  Button,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel
+} from '@material-ui/core';
 import './style.css';
 
 const BootstrapInput = withStyles((theme) => ({
@@ -52,75 +60,94 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AddItemsBlacklist() {
   const classes = useStyles();
+  const [selectedValue, setSelectedValue] = useState('Kisaragi');
+
+  const handleChange = (e) => {
+    setSelectedValue(e.target.value);
+  }
 
   return (
-    <div className="layout">
-      <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="right"
-      >
-        <FormControl className={classes.margin}>
-          {/* <InputLabel htmlFor="demo-customized-select-native">Age</InputLabel> */}
-          <NativeSelect
-            id="demo-customized-select-native"
-            // value={age}
-            // onChange={handleChange}
-            input={<BootstrapInput />}
-          >
-            <option aria-label="None" value="" />
-            <option value={10}>Add items blacklist</option>
-            <option value={20}>Add items seller list</option>
-          </NativeSelect>
-        </FormControl>
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="flex-end"
-        p={2}
-      >
-        <label> System </label>
-        {['Kisaragi', 'Fumizuki', 'Odawara', 'Xianvu'].map(label => (
-          <RadioButton label={label} />
-        ))}
-      </Box>
-      <Box
-        display="flex"
-        flex-direction="row"
-        justifyContent="flex-end"
-        width={1}
-        height={1}
-      >
+    <div className="layout-blacklist">
+      <Grid className="grid-container">
+        <label></label>
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="right"
+        >
+          <FormControl className={classes.margin}>
+            <InputLabel htmlFor="demo-customized-select-native">Select list</InputLabel>
+            <NativeSelect
+              id="demo-customized-select-native"
+              // value={age}
+              // onChange={handleChange}
+              input={<BootstrapInput />}
+            >
+              <option aria-label="None" value="" />
+              <option value={10}>Add items blacklist</option>
+              <option value={20}>Add items seller list</option>
+            </NativeSelect>
+          </FormControl>
+        </Box>
+        <label className="label-select">System</label>
+        <Box
+          display="flex"
+          flexDirection="row"
+          justifyContent=""
+        >
+          <FormControl component="fieldset">
+            <RadioGroup name="select-system" value={selectedValue} onChange={handleChange}>
+              <Box
+                display="flex"
+                flex-direction="column"
+                justify-content="center"
+              >
+                {['Kisaragi', 'Fumizuki', 'Odawara', 'Xianvu'].map(value => (
+                  <FormControlLabel 
+                    value={value} 
+                    control={<Radio />} 
+                    label={value} 
+                    className={value !== 'Kisaragi' ? "box-radio" : ''}
+                  />
+                ))}
+              </Box>
+            </RadioGroup>
+          </FormControl>
+        </Box>
         <label> Items ids </label>
-        <TextareaAutosize
-          aria-label="maximum height" 
-          maxRows={50} 
-          minRows={50}
-          className="aria-text"
-        />
-      </Box>
-      <Box
-        display="flex"
-        flex-direction="row"
-        justifyContent="flex-end"
-        p={2}
-        pr={0}
-      >
-        <Button 
-          variant="contained" 
-          color="secondary"
+        <Box
+          display="flex"
+          flex-direction="row"
+          justifyContent=""
         >
-          Clear
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary"
-          className="btn-add"
+          <TextareaAutosize
+            aria-label="maximum height" 
+            maxRows={50} 
+            minRows={50}
+            className="aria-text"
+          />
+        </Box>
+        <Box
+          display="flex"
+          flex-direction="row"
+          justifyContent="flex-end"
+          className="box-btn"
         >
-          Add
-        </Button>
-      </Box>
+          <Button 
+            variant="contained" 
+            color="secondary"
+          >
+            Clear
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            className="btn-add"
+          >
+            Add
+          </Button>
+        </Box>
+      </Grid>
     </div>
   )
 }
