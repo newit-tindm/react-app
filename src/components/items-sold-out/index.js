@@ -80,8 +80,6 @@ export default function ItemsSoldOut() {
         res.filter(data => {
           if (data && data.status) {
             return items.push(data.id);
-          } else {
-            console.log('data ', data);
           }
         });
         let percent = ++count*100/arr_items.length;
