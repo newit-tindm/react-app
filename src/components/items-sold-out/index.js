@@ -47,10 +47,10 @@ export default function ItemsSoldOut() {
 
   const convertStringToArr = (str) => {
     let re = /\s|,\s|,/; // (' ' || ', ' || '\n')
-    let arr = str.split(re);
-    return arr.map(item => {
-      return parseInt(item)
-    });
+    return str.split(re);
+    // return arr.map(item => {
+    //   return parseInt(item)
+    // });
   }
 
   const getItemsNotBlocked = (blocked_ids, upload_ids) => {
@@ -80,6 +80,8 @@ export default function ItemsSoldOut() {
         res.filter(data => {
           if (data && data.status) {
             return items.push(data.id);
+          } else {
+            console.log('data ', data);
           }
         });
         let percent = ++count*100/arr_items.length;
